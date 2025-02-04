@@ -1,0 +1,47 @@
+services:
+  # Service de base de données pour l'environnement de développement
+  db-zelty:
+    image: mysql:latest
+    container_name: db_zelty
+    restart: always
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+      MYSQL_DATABASE: zelty
+    volumes:
+      - db-data-zelty:/var/lib/mysql  # Volume persistant pour dev
+    networks:
+      - zelty
+
+  # Service phpMyAdmin pour l'environnement de développement
+  phpmyadmin-zelty:
+    image: phpmyadmin
+    container_name: phpmyadmin_zelty
+    depends_on:
+      - db-zelty
+    ports:
+      - "8080:80"  # Accès à phpMyAdmin pour dev
+    environment:
+      PMA_HOST: db-zelty
+    networks:
+      - zelty
+
+  # Service de votre application Symfony pour l'environnement de développement
+  www-zelty:
+    build: .
+    container_name: www_zelty
+    ports:
+      - "8000:80"  # Serveur web pour dev
+    volumes:
+      - ./vhosts:/etc/apache2/sites-enabled
+      - ./:/var/www
+    environment:
+      APP_ENV: dev
+      APP_DEBUG: 1
+    networks:
+      - zelty
+
+networks:
+  zelty:
+
+volumes:
+  db-data-zelty:  # Volume persistant pour la base de données de développement
